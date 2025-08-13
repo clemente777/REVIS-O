@@ -1,1 +1,262 @@
-cod
+app------------------------------------------
+import sqlite3
+from flask import Flask, render_template, request, redirect, url_for
+
+app = Flask(__name__)
+
+# --- 1. Inicializar o Banco de Dados (20 pontos) ---
+# Função para conectar ao banco de dados
+def conectar_bd():
+    conn = sqlite3.connect('restaurante.db')
+    return conn
+
+# Função para criar as tabelas
+def criar_tabelas():
+    conn = conectar_bd()
+    cursor = conn.cursor()
+
+    # a. Definir tabela de comidas
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS comidas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            descricao TEXT,
+            preco REAL NOT NULL
+        );
+    ''')
+
+    # b. Definir tabela de pedidos (com chave estrangeira)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente TEXT NOT NULL,
+            comida_id INTEGER NOT NULL,
+            FOREIGN KEY (comida_id) REFERENCES comidas(id)
+        );
+    ''')
+
+    conn.commit()
+    conn.close()
+
+# Chama a função de criação de tabelas ao iniciar a aplicação
+criar_tabelas()
+
+
+# --- Rotas da Aplicação ---
+
+@app.route('/')
+def index():
+    return redirect(url_for('listar_comidas'))
+
+# --- 2. Modificar o cadastro de comidas (20 pontos) ---
+@app.route('/cadastrar_comida', methods=['GET', 'POST'])
+def cadastrar_comida():
+    if request.method == 'POST':
+        nome = request.form['nome']
+        descricao = request.form['descricao']
+        preco = float(request.form['preco'])
+
+        conn = conectar_bd()
+        cursor = conn.cursor()
+        
+        # a. Cadastrar comida no banco de dados
+        cursor.execute("INSERT INTO comidas (nome, descricao, preco) VALUES (?, ?, ?)", (nome, descricao, preco))
+        
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for('listar_comidas'))
+    
+    return render_template('cadastrar_comida.html')
+
+# --- 3. Modificar a listagem de comidas (20 pontos) ---
+@app.route('/listar_comidas')
+def listar_comidas():
+    conn = conectar_bd()
+    cursor = conn.cursor()
+    
+    # a. Listar as comidas presentes no banco de dados
+    cursor.execute("SELECT id, nome, descricao, preco FROM comidas")
+    comidas = cursor.fetchall()
+    
+    conn.close()
+    
+    return render_template('listar_comidas.html', comidas=comidas)
+
+# --- 4. Cadastrar um pedido de comida (20 pontos) ---
+@app.route('/cadastrar_pedido', methods=['GET', 'POST'])
+def cadastrar_pedido():
+    conn = conectar_bd()
+    cursor = conn.cursor()
+    
+    # Busca todas as comidas para o dropdown
+    cursor.execute("SELECT id, nome FROM comidas")
+    comidas = cursor.fetchall()
+    
+    if request.method == 'POST':
+        cliente = request.form['cliente']
+        comida_id = request.form['comida_id']
+        
+        # b. Cadastrar pedido no banco de dados
+        cursor.execute("INSERT INTO pedidos (cliente, comida_id) VALUES (?, ?)", (cliente, comida_id))
+        
+        conn.commit()
+        conn.close()
+        
+        # c. Redirecionar para uma lista de pedidos
+        return redirect(url_for('listar_pedidos'))
+        
+    conn.close()
+    return render_template('cadastrar_pedido.html', comidas=comidas)
+
+# --- 5. Listar pedidos (20 pontos) ---
+@app.route('/listar_pedidos')
+def listar_pedidos():
+    conn = conectar_bd()
+    cursor = conn.cursor()
+    
+    # a. Mostrar os pedidos, unindo as tabelas para pegar o nome da comida
+    cursor.execute('''
+        SELECT p.id, p.cliente, c.nome, c.preco 
+        FROM pedidos p 
+        JOIN comidas c ON p.comida_id = c.id
+    ''')
+    pedidos = cursor.fetchall()
+    
+    conn.close()
+    
+    return render_template('listar_pedidos.html', pedidos=pedidos)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+cadastrar_comida.html------------------------------------------------------
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastrar Comida</title>
+</head>
+<body>
+    <h1>Cadastrar Nova Comida</h1>
+    <form action="{{ url_for('cadastrar_comida') }}" method="POST">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required><br><br>
+        
+        <label for="descricao">Descrição:</label>
+        <textarea id="descricao" name="descricao"></textarea><br><br>
+        
+        <label for="preco">Preço:</label>
+        <input type="number" id="preco" name="preco" step="0.01" required><br><br>
+        
+        <button type="submit">Cadastrar</button>
+    </form>
+    <hr>
+    <a href="{{ url_for('listar_comidas') }}">Ver Comidas</a> |
+    <a href="{{ url_for('cadastrar_pedido') }}">Fazer Pedido</a>
+</body>
+</html>
+
+
+listar_comida.html----------------------------------------------------------
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Listar Comidas</title>
+</head>
+<body>
+    <h1>Cardápio</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Preço</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comida in comidas %}
+            <tr>
+                <td>{{ comida[0] }}</td>
+                <td>{{ comida[1] }}</td>
+                <td>{{ comida[2] }}</td>
+                <td>R$ {{ "%.2f"|format(comida[3]) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+    <a href="{{ url_for('cadastrar_comida') }}">Cadastrar Nova Comida</a> |
+    <a href="{{ url_for('cadastrar_pedido') }}">Fazer Pedido</a>
+</body>
+</html>
+
+
+cadastrar_pedido.html------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Fazer Pedido</title>
+</head>
+<body>
+    <h1>Fazer um Novo Pedido</h1>
+    <form action="{{ url_for('cadastrar_pedido') }}" method="POST">
+        <label for="cliente">Nome do Cliente:</label>
+        <input type="text" id="cliente" name="cliente" required><br><br>
+        
+        <label for="comida_id">Escolha a Comida:</label>
+        <select id="comida_id" name="comida_id" required>
+            {% for comida in comidas %}
+            <option value="{{ comida[0] }}">{{ comida[1] }}</option>
+            {% endfor %}
+        </select><br><br>
+        
+        <button type="submit">Cadastrar Pedido</button>
+    </form>
+    <hr>
+    <a href="{{ url_for('listar_pedidos') }}">Ver Pedidos</a> |
+    <a href="{{ url_for('listar_comidas') }}">Ver Cardápio</a>
+</body>
+</html>
+
+
+
+listar_pedido.html------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Listar Pedidos</title>
+</head>
+<body>
+    <h1>Pedidos Realizados</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID Pedido</th>
+                <th>Cliente</th>
+                <th>Comida</th>
+                <th>Preço</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td>{{ pedido[0] }}</td>
+                <td>{{ pedido[1] }}</td>
+                <td>{{ pedido[2] }}</td>
+                <td>R$ {{ "%.2f"|format(pedido[3]) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+    <a href="{{ url_for('cadastrar_pedido') }}">Fazer Novo Pedido</a> |
+    <a href="{{ url_for('listar_comidas') }}">Ver Cardápio</a>
+</body>
+</html>
