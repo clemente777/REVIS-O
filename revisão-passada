@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Personagens</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+
+    <h1>Tabela de Personagens</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Jogo de Origem</th>
+                <th>Habilidade Principal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for personagem in personagens %}
+            <tr>
+                <td>{{ personagem['nome'] }}</td>
+                <td>{{ personagem['jogo_origem'] }}</td>
+                <td>{{ personagem['habilidade_principal'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
