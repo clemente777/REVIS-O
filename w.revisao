@@ -261,7 +261,24 @@ listar_pedido.html--------------------------------------------------------------
 </body>
 </html>
 
-
+index.html---------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Página Inicial</title>
+</head>
+<body>
+    <h1>Bem-vindo ao IFRN-Softwares!</h1>
+    <p>Escolha uma opção abaixo para começar:</p>
+    <ul>
+        <li><a href="{{ url_for('listar_comidas') }}">Ver Cardápio</a></li>
+        <li><a href="{{ url_for('cadastrar_comida') }}">Cadastrar Nova Comida</a></li>
+        <li><a href="{{ url_for('cadastrar_pedido') }}">Fazer um Pedido</a></li>
+        <li><a href="{{ url_for('listar_pedidos') }}">Ver Pedidos</a></li>
+    </ul>
+</body>
+</html>
 
 estrutura-------------------------------------------------------------
 seu-projeto/
