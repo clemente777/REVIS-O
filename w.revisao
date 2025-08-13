@@ -1,4 +1,4 @@
-app------------------------------------------crie todas essas tabelas no database.py
+app------------------------------------------crie todas essas tabelas no database.py tire do app.py,  senao der certo deixe assim mesmo
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for
 
