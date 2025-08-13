@@ -131,6 +131,45 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
+como fica o database.py-------------------------------------------------------
+import sqlite3
+
+def conectar_bd():
+    """Conecta ao banco de dados e retorna a conexão."""
+    conn = sqlite3.connect('restaurante.db')
+    conn.row_factory = sqlite3.Row  # Isso permite acessar colunas por nome
+    return conn
+
+def criar_tabelas():
+    """Cria as tabelas 'comidas' e 'pedidos' no banco de dados."""
+    conn = conectar_bd()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS comidas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL,
+            descricao TEXT,
+            preco REAL NOT NULL
+        );
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente TEXT NOT NULL,
+            comida_id INTEGER NOT NULL,
+            FOREIGN KEY (comida_id) REFERENCES comidas(id)
+        );
+    ''')
+
+    conn.commit()
+    conn.close()
+
+
+
+
+
 
 cadastrar_comida.html------------------------------------------------------
 <!DOCTYPE html>
