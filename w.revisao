@@ -260,3 +260,15 @@ listar_pedido.html--------------------------------------------------------------
     <a href="{{ url_for('listar_comidas') }}">Ver Cardápio</a>
 </body>
 </html>
+
+
+
+estrutura-------------------------------------------------------------
+seu-projeto/
+├── app.py
+├── database.py
+└── templates/
+    ├── cadastrar_comida.html
+    ├── cadastrar_pedido.html
+    ├── listar_comidas.html
+    └── listar_pedidos.html
