@@ -1,3 +1,60 @@
+# Importa o Flask, que nos ajuda a criar o site, e o sqlite3 para o banco de dados.
+from flask import Flask, render_template
+import sqlite3
+
+# Cria o nosso aplicativo web.
+app = Flask(__name__)
+
+# --- INÍCIO DO CÓDIGO DA ROTA ---
+# Esta parte diz que quando alguém acessar o endereço "/personagens" no navegador,
+# a função 'listar_personagens' será executada.
+@app.route('/personagens')
+def listar_personagens():
+    # Conecta-se ao banco de dados chamado 'banco_de_dados.db'.
+    conexao = sqlite3.connect('banco_de_dados.db')
+    # Prepara a conexão para que a gente possa pegar os dados por nome (ex: 'nome').
+    conexao.row_factory = sqlite3.Row
+    
+    # Executa o comando para pegar os dados dos personagens.
+    # Pedimos para ele selecionar o 'nome', 'jogo_origem' e 'habilidade_principal'
+    # da tabela 'personagens'.
+    dados_da_tabela = conexao.execute('SELECT nome, jogo_origem, habilidade_principal FROM personagens').fetchall()
+    
+    # Fecha a conexão com o banco de dados para economizar recursos.
+    conexao.close()
+    
+    # Pega o arquivo 'personagens.html' e preenche ele com os dados que buscamos.
+    # O HTML vai receber uma lista que chamamos de 'personagens'.
+    return render_template('personagens.html', personagens=dados_da_tabela)
+
+# --- FIM DO CÓDIGO DA ROTA ---
+
+
+# --- CÓDIGO PARA CRIAR O BANCO E OS DADOS INICIAIS (APENAS PARA O EXEMPLO) ---
+# Você não precisa desta parte no seu código final, é só para ter os dados
+# prontos para testar.
+if __name__ == '__main__':
+    conexao = sqlite3.connect('banco_de_dados.db')
+    conexao.execute('''
+        CREATE TABLE IF NOT EXISTS personagens (
+            nome TEXT,
+            jogo_origem TEXT,
+            habilidade_principal TEXT
+        )
+    ''')
+    conexao.execute("INSERT OR REPLACE INTO personagens (rowid, nome, jogo_origem, habilidade_principal) VALUES (1, 'Mario', 'Super Mario Bros.', 'Super Salto')")
+    conexao.execute("INSERT OR REPLACE INTO personagens (rowid, nome, jogo_origem, habilidade_principal) VALUES (2, 'Link', 'The Legend of Zelda', 'Espada Mestra')")
+    conexao.commit()
+    conexao.close()
+    
+    # Inicia o servidor para que você possa acessar o site.
+    app.run()
+
+
+
+
+
+#html ----------------------------------
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
